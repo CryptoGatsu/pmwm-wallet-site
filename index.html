@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Polymarket Weatherman — Wallet Verification</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <script src="https://unpkg.com/bs58@5.0.0/dist/bs58.min.js"></script>
+  <style>
+    :root {
+      --bg: #050713;
+      --card: #0c1024;
+      --accent: #4a8dff;
+      --text: #f5f7ff;
+      --muted: #9aa0c2;
+      --danger: #ff4a7a;
+      --border: #242b4a;
+      --radius-lg: 18px;
+      --radius-sm: 10px;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: system-ui,-apple-system,BlinkMacSystemFont,"SF Pro Text",sans-serif;
+      background: radial-gradient(circle at top,#151a35 0,#050713 55%,#020309 100%);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .shell { width: 100%; max-width: 900px; padding: 24px; }
+    .card {
+      background: linear-gradient(135deg,rgba(74,141,255,0.12),rgba(62,203,255,0.06));
+      border-radius: 24px;
+      padding: 1px;
+      box-shadow: 0 18px 45px rgba(0,0,0,0.55);
+    }
+    .card-inner {
+      background: radial-gradient(circle at top left,#111633 0,#07091d 45%,#050713 100%);
+      border-radius: 24px;
+      padding: 22px 20px 20px;
+      border: 1px solid rgba(78,104,190,0.6);
+    }
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 18px;
+    }
+    .title-block { display: flex; flex-direction: column; gap: 4px; }
+    h1 {
+      font-size: 1.3rem;
+      margin: 0;
+      letter-spacing: 0.03em;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    h1 span.logo-dot {
+      width: 9px; height: 9px; border-radius: 999px;
+      background: linear-gradient(135deg,#4a8dff,#3ed0ff);
+      box-shadow: 0 0 10px rgba(84,158,255,0.8);
+    }
+    .subtitle { font-size: 0.85rem; color: var(--muted); }
+    .header-right { display:flex; align-items:center; gap:12px; flex-shrink:0; }
+    .hero-avatar {
+      width:68px;height:68px;border-radius:18px;overflow:hidden;
+      border:1px solid rgba(90,124,218,0.8);
+      box-shadow:0 12px 26px rgba(0,0,0,0.55);
+      background:radial-gradient(circle at top,rgba(74,141,255,0.25),transparent 65%);
+    }
+    .hero-avatar img { width:100%;height:100%;object-fit:cover;display:block;transform:scale(1.03); }
+    .pill {
+      display:inline-flex;align-items:center;gap:6px;
+      padding:5px 10px;border-radius:999px;
+      background:rgba(14,196,121,0.1);
+      border:1px solid rgba(31,201,132,0.5);
+      font-size:0.78rem;color:#8ff3c1;white-space:nowrap;
+    }
+    .pill span.dot {
+      width:6px;height:6px;border-radius:999px;
+      background:#35d68c;box-shadow:0 0 8px rgba(0,255,163,0.8);
+    }
+    .grid { display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:18px; }
+    @media (max-width:768px){
+      .grid{grid-template-columns:minmax(0,1fr);}
+      header{flex-direction:column;align-items:flex-start;}
+      .header-right{align-self:stretch;justify-content:space-between;}
+    }
+    .panel {
+      background: radial-gradient(circle at top left,#111633 0,#050713 80%);
+      border-radius: var(--radius-lg);
+      padding: 14px 14px 12px;
+      border: 1px solid var(--border);
+      position: relative;
+      overflow: hidden;
+    }
+    .panel::before {
+      content:"";position:absolute;inset:0;
+      background:radial-gradient(circle at top left,rgba(74,141,255,0.18),transparent 55%);
+      opacity:0.7;pointer-events:none;
+    }
+    .panel-header {
+      position:relative;display:flex;justify-content:space-between;
+      align-items:center;gap:8px;margin-bottom:8px;
+    }
+    .panel-title {font-size:0.95rem;font-weight:600;display:flex;align-items:center;gap:6px;}
+    .panel-title span.badge {
+      font-size:0.7rem;text-transform:uppercase;letter-spacing:0.08em;
+      color:var(--muted);background:rgba(9,13,40,0.8);
+      padding:2px 8px;border-radius:999px;
+      border:1px solid rgba(51,68,130,0.8);
+    }
+    .panel-sub {position:relative;font-size:0.8rem;color:var(--muted);}
+    textarea,input[type="text"]{
+      width:100%;border-radius:var(--radius-sm);
+      border:1px solid rgba(61,76,141,0.9);
+      background:rgba(4,7,26,0.9);color:var(--text);
+      padding:9px 10px;font-size:0.83rem;resize:vertical;min-height:70px;outline:none;
+    }
+    textarea:focus,input[type="text"]:focus{
+      border-color:var(--accent);box-shadow:0 0 0 1px rgba(74,141,255,0.35);
+    }
+    textarea::placeholder,input::placeholder{color:#555a88;}
+    .field-label{font-size:0.75rem;color:var(--muted);margin-bottom:4px;display:flex;justify-content:space-between;align-items:center;}
+    .field-label span.hint{font-size:0.73rem;color:#6a72a5;}
+    .btn-row{margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;}
+    button{
+      border-radius:999px;border:none;padding:8px 14px;font-size:0.85rem;cursor:pointer;
+      display:inline-flex;align-items:center;gap:6px;
+      background:linear-gradient(135deg,#4a8dff,#3ed0ff);
+      color:#050713;font-weight:600;
+      box-shadow:0 10px 25px rgba(0,0,0,0.45);
+      transition:transform 0.06s ease-out,box-shadow 0.06s ease-out,filter 0.06s ease-out;
+    }
+    button:hover{transform:translateY(-1px);filter:brightness(1.05);box-shadow:0 16px 30px rgba(0,0,0,0.6);}
+    button:active{transform:translateY(0);box-shadow:0 10px 22px rgba(0,0,0,0.55);}
+    .status-pill{
+      font-size:0.8rem;padding:4px 9px;border-radius:999px;
+      border:1px solid rgba(81,100,173,0.8);
+      background:rgba(6,10,40,0.9);
+      display:inline-flex;align-items:center;gap:6px;color:var(--muted);
+    }
+    .status-pill span.dot{
+      width:6px;height:6px;border-radius:999px;
+      background:#ffb046;box-shadow:0 0 8px rgba(255,176,70,0.7);
+    }
+    .status-pill.connected span.dot{background:#38e28b;box-shadow:0 0 8px rgba(56,226,139,0.9);}
+    .outputs{position:relative;display:flex;flex-direction:column;gap:10px;margin-top:6px;}
+    .out-block{
+      background:rgba(5,9,37,0.95);border-radius:var(--radius-sm);
+      padding:7px 9px 8px;border:1px solid rgba(54,71,142,0.9);
+      font-size:0.78rem;overflow-x:auto;max-height:120px;
+    }
+    .out-label{font-size:0.72rem;color:var(--muted);margin-bottom:3px;display:flex;justify-content:space-between;align-items:center;}
+    .mono{font-family:"SF Mono",Menlo,Monaco,Consolas,"Liberation Mono",monospace;word-break:break-all;line-height:1.3;}
+    .copy-btn{
+      font-size:0.7rem;padding:3px 8px;border-radius:999px;
+      border:1px solid rgba(84,114,187,0.9);
+      background:rgba(8,12,38,0.9);color:var(--muted);cursor:pointer;
+    }
+    .msg{font-size:0.78rem;margin-top:6px;color:var(--muted);}
+    .msg.error{color:var(--danger);}
+    .msg.success{color:#67f2b4;}
+    .footer-note{margin-top:10px;font-size:0.74rem;color:#6b73a6;}
+    .footer-note strong{color:#c7cffc;}
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <div class="card">
+      <div class="card-inner">
+        <header>
+          <div class="title-block">
+            <h1><span class="logo-dot"></span> Polymarket Weatherman — Wallet Check</h1>
+            <div class="subtitle">
+              Sign a one-line message with your Solana wallet to prove ownership.<br />
+              Paste the signature into <strong>/sign</strong> in Telegram.
+            </div>
+          </div>
+          <div class="header-right">
+            <div class="hero-avatar">
+              <img src="weatherman.png" alt="Polymarket Weatherman" />
+            </div>
+            <div class="pill">
+              <span class="dot"></span>
+              <span>Step 1 of 2 — Verify Wallet</span>
+            </div>
+          </div>
+        </header>
+
+        <div class="grid">
+          <div class="panel">
+            <div class="panel-header">
+              <div class="panel-title">
+                Sign verification message
+                <span class="badge">Client-side only</span>
+              </div>
+            </div>
+            <div class="panel-sub">
+              Use your wallet to sign the exact text below. The message never leaves your browser.
+            </div>
+
+            <div style="position:relative; margin-top:10px;">
+              <div class="field-label">
+                <span>Message to sign</span>
+                <span class="hint">Paste the line from Telegram (e.g. <code>PMWM verify abc123...</code>)</span>
+              </div>
+              <textarea id="messageInput" placeholder="PMWM verify e5e0e8c196715ee819cde2e67544c5dc"></textarea>
+            </div>
+
+            <div class="btn-row">
+              <button id="connectBtn" type="button">🔗 Connect Wallet</button>
+              <button id="signBtn" type="button">✍️ Sign Message</button>
+            </div>
+
+            <div id="msgArea" class="msg"></div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-header">
+              <div class="panel-title">Wallet status</div>
+              <div id="statusPill" class="status-pill">
+                <span class="dot"></span>
+                <span id="statusText">Wallet not connected</span>
+              </div>
+            </div>
+            <div class="panel-sub">
+              Connect Phantom / Solflare / Backpack in this browser profile. We’ll show a shortened address.
+            </div>
+
+            <div style="margin-top:10px;">
+              <div class="field-label">
+                <span>Connected address</span>
+                <span class="hint">Should match the wallet you sent to the bot</span>
+              </div>
+              <input id="addressField" type="text" readonly placeholder="Not connected" />
+            </div>
+
+            <div class="outputs">
+              <div class="out-block">
+                <div class="out-label">
+                  <span>Signature (base58)</span>
+                  <button class="copy-btn" type="button" data-copy-target="sigBase58">Copy</button>
+                </div>
+                <div id="sigBase58" class="mono">—</div>
+              </div>
+              <div class="out-block">
+                <div class="out-label">
+                  <span>Signature (hex)</span>
+                  <button class="copy-btn" type="button" data-copy-target="sigHex">Copy</button>
+                </div>
+                <div id="sigHex" class="mono">—</div>
+              </div>
+            </div>
+
+            <div class="footer-note">
+              <strong>How to use this with the bot:</strong><br />
+              1) Run <code>/setwallet YOUR_SOL_ADDRESS</code> in Telegram<br />
+              2) Paste the <code>PMWM verify ...</code> line into the box on the left<br />
+              3) Connect wallet &amp; sign<br />
+              4) Copy the base58 or hex signature and send:<br />
+              <code>/sign YOUR_SIGNATURE_HERE</code>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const statusPill = document.getElementById("statusPill");
+    const statusText = document.getElementById("statusText");
+    const addrField = document.getElementById("addressField");
+    const msgArea = document.getElementById("msgArea");
+    const connectBtn = document.getElementById("connectBtn");
+    const signBtn = document.getElementById("signBtn");
+    const messageInput = document.getElementById("messageInput");
+    const sigBase58El = document.getElementById("sigBase58");
+    const sigHexEl = document.getElementById("sigHex");
+
+    let currentPublicKey = null;
+
+    function setStatus(text, connected = false) {
+      statusText.textContent = text;
+      if (connected) statusPill.classList.add("connected");
+      else statusPill.classList.remove("connected");
+    }
+
+    function setMessage(text, type = "info") {
+      msgArea.textContent = text || "";
+      msgArea.classList.remove("error", "success");
+      if (!text) return;
+      if (type === "error") msgArea.classList.add("error");
+      if (type === "success") msgArea.classList.add("success");
+    }
+
+    function shorten(address) {
+      if (!address || address.length < 12) return address || "";
+      return address.slice(0, 4) + "…" + address.slice(-4);
+    }
+
+    async function connectWallet() {
+      setMessage("");
+      if (!window.solana) {
+        setStatus("No Solana wallet found", false);
+        setMessage("No Solana wallet detected in this browser. Install Phantom / Solflare / Backpack and refresh.", "error");
+        return;
+      }
+      try {
+        const resp = await window.solana.connect({ onlyIfTrusted: false });
+        currentPublicKey = resp.publicKey || window.solana.publicKey;
+        const addr = currentPublicKey.toBase58();
+        addrField.value = addr;
+        setStatus("Connected: " + shorten(addr), true);
+        setMessage("Wallet connected. Now sign the message.", "success");
+      } catch (err) {
+        console.error("Connect error", err);
+        setStatus("Wallet not connected", false);
+        setMessage("Connection cancelled or failed. Try again and approve the wallet popup.", "error");
+      }
+    }
+
+    async function signVerificationMessage() {
+      setMessage("");
+      if (!window.solana) {
+        setStatus("No Solana wallet found", false);
+        setMessage("No Solana wallet detected. Install Phantom / Solflare / Backpack and refresh.", "error");
+        return;
+      }
+      if (!currentPublicKey && window.solana.isConnected && window.solana.publicKey) {
+        currentPublicKey = window.solana.publicKey;
+      }
+      if (!currentPublicKey) {
+        setMessage("Connect your wallet first.", "error");
+        return;
+      }
+
+      const msg = (messageInput.value || "").trim();
+      if (!msg) {
+        setMessage("Paste the exact `PMWM verify ...` line from Telegram before signing.", "error");
+        return;
+      }
+
+      try {
+        const encoder = new TextEncoder();
+        const msgBytes = encoder.encode(msg);
+        const res = await window.solana.signMessage(msgBytes, "utf8");
+        const sigBytes = res.signature || res;
+        const arr = sigBytes instanceof Uint8Array ? sigBytes : new Uint8Array(sigBytes);
+
+        const sig58 = bs58.encode(arr);
+        const sigHex = Array.from(arr).map(b => b.toString(16).padStart(2, "0")).join("");
+
+        sigBase58El.textContent = sig58;
+        sigHexEl.textContent = sigHex;
+
+        const addr = currentPublicKey.toBase58();
+        setStatus("Connected: " + shorten(addr), true);
+        setMessage("Message signed. Copy one of the signatures and send it to the bot with /sign.", "success");
+      } catch (err) {
+        console.error("Sign error", err);
+        setMessage("Signing cancelled or failed. Make sure your wallet supports `signMessage` and that you approved the request.", "error");
+      }
+    }
+
+    connectBtn.addEventListener("click", connectWallet);
+    signBtn.addEventListener("click", signVerificationMessage);
+
+    document.querySelectorAll(".copy-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const targetId = btn.getAttribute("data-copy-target");
+        const el = document.getElementById(targetId);
+        if (!el) return;
+        const text = el.textContent.trim();
+        if (!text || text === "—") return;
+        navigator.clipboard.writeText(text).then(() => {
+          btn.textContent = "Copied!";
+          setTimeout(() => { btn.textContent = "Copy"; }, 900);
+        }).catch(() => {});
+      });
+    });
+
+    window.addEventListener("load", () => {
+      if (window.solana && window.solana.isConnected && window.solana.publicKey) {
+        currentPublicKey = window.solana.publicKey;
+        const addr = currentPublicKey.toBase58();
+        addrField.value = addr;
+        setStatus("Connected: " + shorten(addr), true);
+      }
+    });
+  </script>
+</body>
+</html>
