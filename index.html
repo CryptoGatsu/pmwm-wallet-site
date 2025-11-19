@@ -5,12 +5,6 @@
   <title>Polymarket Weatherman — Wallet Verification</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-  <!-- Updated reliable bs58 import -->
-  <script src="https://cdn.jsdelivr.net/npm/bs58@5.0.0/dist/bs58.min.js"></script>
-  <script>
-    const bs58 = window.bs58;
-  </script>
-
   <style>
     :root {
       --bg: #050713;
@@ -287,11 +281,6 @@
       box-shadow: 0 0 8px rgba(56, 226, 139, 0.9);
     }
 
-    .addr-short {
-      font-family: "SF Mono", Menlo, Monaco, Consolas, "Liberation Mono", monospace;
-      font-size: 0.8rem;
-    }
-
     .outputs {
       position: relative;
       display: flex;
@@ -367,7 +356,6 @@
           </div>
           <div class="header-right">
             <div class="hero-avatar">
-              <!-- Put your image file as weatherman.png in the same folder as this HTML -->
               <img src="weatherman.png" alt="Polymarket Weatherman" />
             </div>
             <div class="pill">
@@ -378,7 +366,6 @@
         </header>
 
         <div class="grid">
-          <!-- LEFT: message + sign -->
           <div class="panel">
             <div class="panel-header">
               <div class="panel-title">
@@ -410,12 +397,9 @@
             <div id="msgArea" class="msg"></div>
           </div>
 
-          <!-- RIGHT: wallet status + outputs -->
           <div class="panel">
             <div class="panel-header">
-              <div class="panel-title">
-                Wallet status
-              </div>
+              <div class="panel-title">Wallet status</div>
               <div id="statusPill" class="status-pill">
                 <span class="dot"></span>
                 <span id="statusText">Wallet not connected</span>
@@ -466,6 +450,35 @@
   </div>
 
   <script>
+    // Pure JS Base58 encoder (no external libraries)
+    const B58_ALPHABET = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
+    function base58Encode(bytes) {
+      if (!(bytes instanceof Uint8Array)) bytes = new Uint8Array(bytes);
+      if (bytes.length === 0) return "";
+
+      let zeros = 0;
+      while (zeros < bytes.length && bytes[zeros] === 0) zeros++;
+
+      let digits = [0];
+      for (let i = zeros; i < bytes.length; i++) {
+        let carry = bytes[i];
+        for (let j = 0; j < digits.length; j++) {
+          const x = (digits[j] << 8) + carry;
+          digits[j] = x % 58;
+          carry = (x / 58) | 0;
+        }
+        while (carry > 0) {
+          digits.push(carry % 58);
+          carry = (carry / 58) | 0;
+        }
+      }
+
+      let result = "";
+      for (let i = 0; i < zeros; i++) result += B58_ALPHABET[0];
+      for (let i = digits.length - 1; i >= 0; i--) result += B58_ALPHABET[digits[i]];
+      return result;
+    }
+
     const statusPill = document.getElementById("statusPill");
     const statusText = document.getElementById("statusText");
     const addrField = document.getElementById("addressField");
@@ -546,7 +559,7 @@
         const sigBytes = res.signature || res;
         const arr = sigBytes instanceof Uint8Array ? sigBytes : new Uint8Array(sigBytes);
 
-        const sig58 = bs58.encode(arr);
+        const sig58 = base58Encode(arr);
         const sigHex = Array.from(arr).map(b => b.toString(16).padStart(2, "0")).join("");
 
         sigBase58El.textContent = sig58;
