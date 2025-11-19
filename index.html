@@ -56,7 +56,7 @@
       border-radius: 999px;
       filter: blur(0.3px);
       opacity: 0.18;
-      animation: drift 60s linear infinite;
+      animation: drift linear infinite;
     }
     .cloud::before,
     .cloud::after {
@@ -66,10 +66,11 @@
       border-radius: inherit;
     }
 
+    /* Medium-speed cloud durations */
     .cloud-1 {
       width: 220px; height: 70px;
       top: 12%; left: -20%;
-      animation-duration: 70s;
+      animation-duration: 25s; /* medium */
     }
     .cloud-1::before {
       width: 140px; height: 80px;
@@ -83,7 +84,7 @@
     .cloud-2 {
       width: 260px; height: 75px;
       top: 32%; left: 100%;
-      animation-duration: 80s;
+      animation-duration: 32s; /* medium */
       animation-direction: reverse;
     }
     .cloud-2::before {
@@ -98,7 +99,7 @@
     .cloud-3 {
       width: 190px; height: 60px;
       bottom: 18%; left: -30%;
-      animation-duration: 65s;
+      animation-duration: 22s; /* medium */
     }
     .cloud-3::before {
       width: 120px; height: 65px;
