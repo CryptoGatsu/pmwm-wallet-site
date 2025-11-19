@@ -19,6 +19,7 @@
       --radius-sm: 10px;
     }
     * { box-sizing: border-box; }
+
     body {
       margin: 0;
       padding: 0;
@@ -29,31 +30,130 @@
       display: flex;
       align-items: center;
       justify-content: center;
+      position: relative;
+      overflow: hidden;
     }
+
+    /* --- Weather / sky background --- */
+    .sky {
+      position: fixed;
+      inset: 0;
+      overflow: hidden;
+      pointer-events: none;
+      z-index: 0;
+      background:
+        radial-gradient(circle at 10% 0%, rgba(80, 140, 255, 0.35) 0, transparent 55%),
+        radial-gradient(circle at 90% 10%, rgba(120, 220, 255, 0.25) 0, transparent 60%);
+      opacity: 0.9;
+    }
+
+    .cloud {
+      position: absolute;
+      background: rgba(245, 248, 255, 0.9);
+      box-shadow:
+        20px 8px 25px rgba(0, 0, 0, 0.25),
+        -18px 0 30px rgba(0, 0, 0, 0.18);
+      border-radius: 999px;
+      filter: blur(0.3px);
+      opacity: 0.18;
+      animation: drift 60s linear infinite;
+    }
+    .cloud::before,
+    .cloud::after {
+      content: "";
+      position: absolute;
+      background: inherit;
+      border-radius: inherit;
+    }
+
+    .cloud-1 {
+      width: 220px; height: 70px;
+      top: 12%; left: -20%;
+      animation-duration: 70s;
+    }
+    .cloud-1::before {
+      width: 140px; height: 80px;
+      top: -30px; left: 50px;
+    }
+    .cloud-1::after {
+      width: 100px; height: 60px;
+      top: 5px; left: 130px;
+    }
+
+    .cloud-2 {
+      width: 260px; height: 75px;
+      top: 32%; left: 100%;
+      animation-duration: 80s;
+      animation-direction: reverse;
+    }
+    .cloud-2::before {
+      width: 150px; height: 80px;
+      top: -25px; left: 40px;
+    }
+    .cloud-2::after {
+      width: 120px; height: 70px;
+      top: 0; left: 140px;
+    }
+
+    .cloud-3 {
+      width: 190px; height: 60px;
+      bottom: 18%; left: -30%;
+      animation-duration: 65s;
+    }
+    .cloud-3::before {
+      width: 120px; height: 65px;
+      top: -24px; left: 40px;
+    }
+    .cloud-3::after {
+      width: 90px; height: 55px;
+      top: 5px; left: 110px;
+    }
+
+    @keyframes drift {
+      0%   { transform: translateX(0); }
+      100% { transform: translateX(140%); }
+    }
+
+    /* --- Main card & layout --- */
     .shell {
       width: 100%;
       max-width: 900px;
       padding: 24px;
+      position: relative;
+      z-index: 1;
     }
     .card {
-      background: linear-gradient(135deg, rgba(74,141,255,0.12), rgba(62,203,255,0.06));
+      background: linear-gradient(135deg, rgba(74,141,255,0.16), rgba(62,203,255,0.08));
       border-radius: 24px;
       padding: 1px;
-      box-shadow: 0 18px 45px rgba(0,0,0,0.55);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.65);
+      backdrop-filter: blur(12px);
     }
     .card-inner {
       background: radial-gradient(circle at top left, #111633 0, #07091d 45%, #050713 100%);
       border-radius: 24px;
       padding: 22px 20px 20px;
-      border: 1px solid rgba(78, 104, 190, 0.6);
+      border: 1px solid rgba(78, 104, 190, 0.7);
+      position: relative;
+      overflow: hidden;
+    }
+    .card-inner::before {
+      content: "";
+      position: absolute;
+      inset: -40%;
+      background: radial-gradient(circle at 10% -10%, rgba(255, 255, 255, 0.09) 0, transparent 55%);
+      opacity: 0.4;
+      pointer-events: none;
     }
 
     header {
+      position: relative;
       display: flex;
       justify-content: space-between;
       align-items: center;
       gap: 16px;
       margin-bottom: 18px;
+      z-index: 1;
     }
     .title-block {
       display: flex;
@@ -72,8 +172,8 @@
       width: 9px;
       height: 9px;
       border-radius: 999px;
-      background: linear-gradient(135deg, #4a8dff, #3ed0ff);
-      box-shadow: 0 0 10px rgba(84, 158, 255, 0.8);
+      background: conic-gradient(from 160deg, #4a8dff, #3ed0ff, #4a8dff);
+      box-shadow: 0 0 12px rgba(84, 158, 255, 0.95);
     }
     .subtitle {
       font-size: 0.85rem;
@@ -92,9 +192,11 @@
       height: 68px;
       border-radius: 18px;
       overflow: hidden;
-      border: 1px solid rgba(90, 124, 218, 0.8);
-      box-shadow: 0 12px 26px rgba(0,0,0,0.55);
-      background: radial-gradient(circle at top, rgba(74,141,255,0.25), transparent 65%);
+      border: 1px solid rgba(90, 124, 218, 0.9);
+      box-shadow: 0 14px 30px rgba(0,0,0,0.7);
+      background:
+        radial-gradient(circle at top, rgba(74,141,255,0.35), transparent 65%),
+        linear-gradient(145deg, rgba(5,7,19,0.9), rgba(23,32,68,0.9));
     }
     .hero-avatar img {
       width: 100%;
@@ -125,6 +227,8 @@
     }
 
     .grid {
+      position: relative;
+      z-index: 1;
       display: grid;
       grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
       gap: 18px;
@@ -179,10 +283,10 @@
       text-transform: uppercase;
       letter-spacing: 0.08em;
       color: var(--muted);
-      background: rgba(9, 13, 40, 0.8);
+      background: rgba(9, 13, 40, 0.9);
       padding: 2px 8px;
       border-radius: 999px;
-      border: 1px solid rgba(51, 68, 130, 0.8);
+      border: 1px solid rgba(51, 68, 130, 0.9);
     }
     .panel-sub {
       position: relative;
@@ -193,8 +297,8 @@
     textarea, input[type="text"] {
       width: 100%;
       border-radius: var(--radius-sm);
-      border: 1px solid rgba(61, 76, 141, 0.9);
-      background: rgba(4, 7, 26, 0.9);
+      border: 1px solid rgba(61, 76, 141, 0.95);
+      background: rgba(4, 7, 26, 0.95);
       color: var(--text);
       padding: 9px 10px;
       font-size: 0.83rem;
@@ -254,7 +358,7 @@
     button.secondary {
       background: transparent;
       color: var(--muted);
-      border: 1px solid rgba(81, 100, 173, 0.8);
+      border: 1px solid rgba(81, 100, 173, 0.9);
       box-shadow: none;
     }
 
@@ -262,8 +366,8 @@
       font-size: 0.8rem;
       padding: 4px 9px;
       border-radius: 999px;
-      border: 1px solid rgba(81, 100, 173, 0.8);
-      background: rgba(6, 10, 40, 0.9);
+      border: 1px solid rgba(81, 100, 173, 0.9);
+      background: rgba(6, 10, 40, 0.95);
       display: inline-flex;
       align-items: center;
       gap: 6px;
@@ -289,10 +393,10 @@
       margin-top: 6px;
     }
     .out-block {
-      background: rgba(5, 9, 37, 0.95);
+      background: rgba(5, 9, 37, 0.98);
       border-radius: var(--radius-sm);
       padding: 7px 9px 8px;
-      border: 1px solid rgba(54, 71, 142, 0.9);
+      border: 1px solid rgba(54, 71, 142, 0.95);
       font-size: 0.78rem;
       overflow-x: auto;
       max-height: 120px;
@@ -314,8 +418,8 @@
       font-size: 0.7rem;
       padding: 3px 8px;
       border-radius: 999px;
-      border: 1px solid rgba(84, 114, 187, 0.9);
-      background: rgba(8, 12, 38, 0.9);
+      border: 1px solid rgba(84, 114, 187, 0.95);
+      background: rgba(8, 12, 38, 0.95);
       color: var(--muted);
       cursor: pointer;
     }
@@ -343,6 +447,13 @@
   </style>
 </head>
 <body>
+  <!-- Weather / sky layer -->
+  <div class="sky">
+    <div class="cloud cloud-1"></div>
+    <div class="cloud cloud-2"></div>
+    <div class="cloud cloud-3"></div>
+  </div>
+
   <div class="shell">
     <div class="card">
       <div class="card-inner">
@@ -356,6 +467,7 @@
           </div>
           <div class="header-right">
             <div class="hero-avatar">
+              <!-- Place weatherman.png in the same folder as this file -->
               <img src="weatherman.png" alt="Polymarket Weatherman" />
             </div>
             <div class="pill">
@@ -366,6 +478,7 @@
         </header>
 
         <div class="grid">
+          <!-- LEFT: message + sign -->
           <div class="panel">
             <div class="panel-header">
               <div class="panel-title">
@@ -397,6 +510,7 @@
             <div id="msgArea" class="msg"></div>
           </div>
 
+          <!-- RIGHT: wallet status + outputs -->
           <div class="panel">
             <div class="panel-header">
               <div class="panel-title">Wallet status</div>
